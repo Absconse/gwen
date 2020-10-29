@@ -1,0 +1,120 @@
+CREATE TABLE CLIENT (
+  id_client integer PRIMARY KEY IDENTITY,
+  rs varchar(100)
+);
+
+CREATE TABLE ADRLIV (
+  id_adrliv int PRIMARY KEY IDENTITY,
+  id_client int,
+  adresse varchar(100)
+);
+
+CREATE TABLE ETATCDE (
+  id_etatcde int PRIMARY KEY IDENTITY,
+  libelle varchar(100)
+);
+
+CREATE TABLE COMMANDE (
+  id_commande int PRIMARY KEY IDENTITY,
+  id_client int,
+  id_adrliv int,
+  id_etatcde int,
+  id_transport int,
+  qte_cde int,
+  num_bl int,
+  date_cde date
+);
+
+CREATE TABLE COLIS (
+  id_colis int PRIMARY KEY,
+  id_commande int,
+  poids decimal(9,2)
+);
+
+ALTER TABLE ADRLIV ADD CONSTRAINT id_client_adrliv_fk
+FOREIGN KEY (id_client) REFERENCES CLIENT(id_client);
+
+ALTER TABLE COMMANDE ADD CONSTRAINT id_client_commande_fk
+FOREIGN KEY (id_client) REFERENCES CLIENT(id_client);
+
+ALTER TABLE COMMANDE ADD CONSTRAINT id_adrliv_fk
+FOREIGN KEY (id_adrliv) REFERENCES ADRLIV(id_adrliv);
+
+ALTER TABLE COMMANDE ADD CONSTRAINT id_etatcde_fk
+FOREIGN KEY (id_etatcde) REFERENCES ETATCDE(id_etatcde);
+
+ALTER TABLE COLIS ADD CONSTRAINT id_commande_fk
+FOREIGN KEY (id_commande) REFERENCES COMMANDE(id_commande);
+
+INSERT INTO CLIENT (rs)
+VALUES ('cs2i'), ('ACHUN'), ('ALLIGNY-COSNE'), ('PREMERY');
+
+INSERT INTO ADRLIV (id_client, adresse)
+VALUES
+  (1, 'Rue Faidherbe'),
+  (2, 'place de la mairie'),
+  (3, 'place de la mairie'),
+  (4, 'place de la mairie')
+;
+
+INSERT INTO ETATCDE (Libelle)
+VALUES ('En cours'), ('En attente'), ('Terminée');
+
+INSERT INTO COMMANDE (qte_cde, date_cde, id_transport, id_client, id_adrliv, id_etatcde)
+VALUES
+  (15, '2019-12-17', 15, 1, 1, 2),
+  (84, '2019-11-27', 14, 3, 3, 3)
+;
+
+INSERT INTO COLIS (poids, id_commande)
+VALUES
+  (23, 1), (20, 1),
+  (20, 2), (20, 2), (20, 2), (20, 2), (4, 2)
+
+  CREATE PROCEDURE maprocedure(
+  	@datedeb date,
+  	@datefin date,
+  	@total bit
+  )
+  AS BEGIN
+
+  SELECT CDE.date_cde AS date,
+		CDE.id_adrliv,
+		CL.id_client,
+		MIN(CDE.num_bl) AS num_bl,
+		COUNT(CO.id_colis) AS nb_colis,
+		CO.poids,
+		CDE.id_transport
+	INTO #TMP
+	FROM CLIENT CL
+	INNER JOIN COMMANDE CDE
+		ON CL.id_client = CDE.id_client
+	LEFT JOIN COLIS CO
+		ON CDE.id_commande = CO.id_commande
+	GROUP BY CDE.date_cde,
+		CDE.id_adrliv,
+		CL.id_client,
+		CO.poids,
+		CDE.id_transport;
+
+	INSERT INTO #TMP (
+    date,
+		id_adrliv,
+		id_client,
+		num_bl,
+		nb_colis,
+		poids,
+		id_transport)
+	SELECT SUM(nbcolis),
+    SUM(Poidstotal),
+    '',
+    '',
+    '',
+    '',
+    ''
+  FROM #TMP
+  WHERE date '' AND date ''
+
+  SELECT * FROM #TMP;
+
+END;
